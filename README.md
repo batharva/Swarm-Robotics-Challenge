@@ -157,9 +157,3 @@ ros2 run hb_control task_2a_controller.py
 ## 🛠️ Tech Stack
 
 `ROS2 Humble` · `Gazebo` · `OpenCV` · `Python 3.10` · `ArUco Markers` · `PID Control` · `URDF/Xacro` · `ros2-control`
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
