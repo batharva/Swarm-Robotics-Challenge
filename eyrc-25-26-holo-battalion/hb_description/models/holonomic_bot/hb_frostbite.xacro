@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hb_bot">
+    
+    <!-- Cylinder Inertia: Ixx = Iyy = m*(3r² + h²)/12, Izz = m*r²/2 -->
+    <xacro:macro name="cylinder_inertia" params="m r h">
+        <inertia
+        ixx="${m*(3*r*r + h*h)/12}" ixy="0"    ixz="0"
+        iyy="${m*(3*r*r + h*h)/12}" iyz="0"
+        izz="${m*r*r/2}" />
+    </xacro:macro>
+
+    <!-- Box Inertia: Ixx = m*(y²+z²)/12, Iyy = m*(x²+z²)/12, Izz = m*(x²+y²)/12 -->
+    <xacro:macro name="box_inertia" params="m x y z">
+        <inertia
+        ixx="${m*(y*y + z*z)/12}" ixy="0"    ixz="0"
+        iyy="${m*(x*x + z*z)/12}" iyz="0"
+        izz="${m*(x*x + y*y)/12}" />
+    </xacro:macro>
+
+    <xacro:macro name="rim_macro" params="name xyz rpy">
+        <link name="rim_${name}_link">
+        <inertial>
+            <origin xyz="0 0 -0.000343"/>
+            <mass value="0.00835758"/>
+            <inertia ixx="6.63684e-07" ixy="0" ixz="0" iyy="6.63684e-07" iyz="0" izz="9.40333e-07"/>
+        </inertial>
+        <visual>
+            <geometry>
+            <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/wheels.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="0.016"/>
+            </geometry>
+        </collision>
+        </link>
+        <joint name="rim_${name}_joint" type="revolute">
+        <parent link="base_link"/>
+        <child link="rim_${name}_link"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="1.0" velocity="10.0" lower="-1.79769e+308" upper="1.79769e+308"/>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        </joint>
+    </xacro:macro>
+
+    <!-- Root link starts from here -->
+    <link name="root_link">
+    </link>
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/hb_frostbite.dae"/>
+            </geometry>
+        </visual>
+
+        <collision name="base_link_collision">
+            <origin xyz="0 0 0.042" rpy="0 0 0" />
+            <geometry>
+                <cylinder length="0.064" radius="0.08"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.15" />
+            <xacro:cylinder_inertia m="0.3" r="0.074" h="0.03"/>
+        </inertial>
+
+    </link>
+    <joint name="root_to_base" type="fixed">
+        <parent link="root_link"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+
+    <link name="chassis_link">
+    </link>
+    <link name="arm_root_link">
+    </link>
+    <link name="arm_link_1">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/arm_link.dae"/>
+            </geometry>
+        </visual>
+        <collision name="arm_link_1_collision">
+            <origin xyz="0 0 0.02472" rpy="0 0 0" />
+            <geometry>
+                <box size="0.008 0.008 0.06"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.001" />
+            <xacro:cylinder_inertia m="0.001" r="0.025" h="0.05"/>
+        </inertial>
+    </link>
+    <link name="arm_link_2">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/arm_elbow.dae"/>
+            </geometry>
+        </visual>
+        <collision name="arm_link_2_collision">
+            <origin xyz="0 0 0.025" rpy="0 0 0" />
+            <geometry>
+                <box size="0.008 0.008 0.05"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.001" />
+            <xacro:cylinder_inertia m="0.001" r="0.025" h="0.05"/>
+        </inertial>
+    </link>
+
+    <joint name="base_to_chassis" type="fixed">
+        <parent link="base_link"/>
+        <child link="chassis_link"/>
+        <origin xyz="0 0 0.0795" rpy="0 0 0" />
+    </joint>
+
+    <joint name="chassis_to_arm_base" type="fixed">
+        <parent link="chassis_link"/>
+        <child link="arm_root_link"/>
+        <origin xyz="0.075 0 0" rpy="0 0 0" />
+    </joint>
+
+    <joint name="arm_base" type="continuous">
+        <parent link="arm_root_link"/>
+        <child link="arm_link_1"/>
+        <origin xyz="0 0 0.013" rpy="0 0 0" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1.0" velocity="2.0" lower="-3.14" upper="3.14"/>
+    </joint>
+
+    <joint name="arm_elbow" type="continuous">
+        <parent link="arm_link_1"/>
+        <child link="arm_link_2"/>
+        <origin xyz="0 0 0.05" rpy="0 0 0" />
+        <axis xyz="0 1 0"/>
+        <limit effort="1.0" velocity="2.0" lower="-3.14" upper="3.14"/>
+    </joint>
+
+    <!-- the wheels are here -->
+    <xacro:rim_macro name="left" xyz="0.03600001399230441 0.06235382099401676 -0.001" rpy="1.570796326794896 0 -0.523599"/>
+    <xacro:rim_macro name="right" xyz="0.03600001399230441 -0.06235382099401676 -0.001"  rpy="1.570796326794896 0 0.523599"/>
+    <xacro:rim_macro name="back" xyz="-0.072 0 0" rpy="1.570796326794896 0 1.570796326794896"/>
+
+    <gazebo>
+        <plugin
+        filename="ignition-gazebo-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        </plugin>
+
+        <plugin filename="ignition-gazebo-joint-state-publisher-system"
+        name="ignition::gazebo::systems::JointStatePublisher">
+        </plugin>
+
+        <!-- ign topic -t "/model/{bot_name}/joint/arm_base/cmd_vel" -m ignition.msgs.Double -p "data: 10.0" -->
+        <plugin filename="ignition-gazebo-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>arm_base</joint_name>
+        </plugin>
+
+        <plugin filename="ignition-gazebo-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>arm_elbow</joint_name>
+        </plugin>
+
+        
+    </gazebo>
+
+</robot>

@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+<sdf version='1.8'>
+  <model name='rack'>
+    <static>1</static>
+    <link name="link">
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <mesh>
+            <uri>model://rack/meshes/rack.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
+

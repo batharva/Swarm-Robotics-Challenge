@@ -1,0 +1,13 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500
+    forward_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+forward_velocity_controller:
+  ros__parameters:
+    joints:
+      - rim_left_joint
+      - rim_right_joint
+      - rim_back_joint
+    interface_name: velocity

@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hb_bot">
+    
+    <!-- Cylinder Inertia: Ixx = Iyy = m*(3r² + h²)/12, Izz = m*r²/2 -->
+    <xacro:macro name="cylinder_inertia" params="m r h">
+        <inertia
+        ixx="${m*(3*r*r + h*h)/12}" ixy="0"    ixz="0"
+        iyy="${m*(3*r*r + h*h)/12}" iyz="0"
+        izz="${m*r*r/2}" />
+    </xacro:macro>
+
+    <!-- Box Inertia: Ixx = m*(y²+z²)/12, Iyy = m*(x²+z²)/12, Izz = m*(x²+y²)/12 -->
+    <xacro:macro name="box_inertia" params="m x y z">
+        <inertia
+        ixx="${m*(y*y + z*z)/12}" ixy="0"    ixz="0"
+        iyy="${m*(x*x + z*z)/12}" iyz="0"
+        izz="${m*(x*x + y*y)/12}" />
+    </xacro:macro>
+
+
+    <xacro:macro name="roller_macro" params="parent name xyz rpy">
+        <link name="roller_${name}_rim_${parent}_link">
+        <inertial>
+            <mass value="0.00113845"/>
+            <inertia ixx="2.53776e-08" ixy="0" ixz="0" iyy="2.53776e-08" iyz="0" izz="1.47666e-08"/>
+        </inertial>
+        <visual>
+            <geometry>
+            <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/roller.stl"/>
+            </geometry>
+            <material name="roller_material">
+            <color rgba="0.1 0.1 0.1 1"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+            <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/roller.stl"/>
+            </geometry>
+        </collision>
+        </link>
+        <joint name="roller_${name}_rim_${parent}_joint" type="continuous">
+        <parent link="rim_${parent}_link"/>
+        <child link="roller_${name}_rim_${parent}_link"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:macro name="rim_macro" params="name color xyz rpy">
+        <link name="rim_${name}_link">
+        <inertial>
+            <origin xyz="0 0 -0.000343"/>
+            <mass value="0.00835758"/>
+            <inertia ixx="6.63684e-07" ixy="0" ixz="0" iyy="6.63684e-07" iyz="0" izz="9.40333e-07"/>
+        </inertial>
+        <visual>
+            <geometry>
+            <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/rim.stl"/>
+            </geometry>
+            <material name="rim_${name}_material">
+            <color rgba="${color} 1"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+            <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/rim.stl"/>
+            </geometry>
+        </collision>
+        </link>
+        <joint name="rim_${name}_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="rim_${name}_link"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        </joint>
+
+        <!-- 8 rollers around the rim -->
+        <xacro:roller_macro parent="${name}" name="e"  xyz="0.01355 0 0.0055"                rpy="-1.570796326794896 0 0"/>
+        <xacro:roller_macro parent="${name}" name="ne" xyz="0.00958129689 0.00958129689 -0.0055" rpy="-1.570796326794896 0 0.7853981633974483"/>
+        <xacro:roller_macro parent="${name}" name="n"  xyz="0 0.01355 0.0055"                rpy="-1.570796326794896 0 1.570796326794896"/>
+        <xacro:roller_macro parent="${name}" name="nw" xyz="-0.00958129689 0.00958129689 -0.0055" rpy="-1.570796326794896 0 2.356194490192345"/>
+        <xacro:roller_macro parent="${name}" name="w"  xyz="-0.01355 0 0.0055"               rpy="-1.570796326794896 0 3.141592653589793"/>
+        <xacro:roller_macro parent="${name}" name="sw" xyz="-0.00958129689 -0.00958129689 -0.0055" rpy="-1.570796326794896 0 -2.356194490192345"/>
+        <xacro:roller_macro parent="${name}" name="s"  xyz="0 -0.01355 0.0055"               rpy="-1.570796326794896 0 -1.570796326794896"/>
+        <xacro:roller_macro parent="${name}" name="se" xyz="0.00958129689 -0.00958129689 -0.0055" rpy="-1.570796326794896 0 -0.7853981633974483"/>
+    </xacro:macro>
+
+    <!-- Root link starts from here -->
+    <link name="footprint_link">
+    </link>
+
+    <joint name="footprint_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="footprint_link"/>
+        <child link="base_link"/>
+    </joint>
+
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/bot.dae"/>
+            </geometry>
+        </visual>
+
+        <collision name="base_link_collision">
+            <origin xyz="0 0 0.026" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find hb_description)/models/holonomic_bot/meshes/bot.dae"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.15" />
+            <xacro:cylinder_inertia m="0.3" r="0.074" h="0.03"/>
+        </inertial>
+
+    </link>
+
+  <!-- Three omni wheels (left, back, right) -->
+  <xacro:rim_macro name="left"  color="0.3 0 0"   xyz="-0.04503332099679081 0.02599999999999999 0" rpy="1.570796326794896 0 1.047197551196597"/>
+  <xacro:rim_macro name="back"  color="0 0.3 0"   xyz="0 -0.052 0"              rpy="1.570796326794896 0 3.141592653589793"/>
+  <xacro:rim_macro name="right" color="0 0 0.3"   xyz="0.04503332099679081 0.02599999999999999 0"  rpy="1.570796326794896 0 -1.047197551196597"/>
+  
+    <!--link name="chassis_link">
+        <inertial>
+            <mass value="0.001" />
+            <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+        </inertial>
+    </link>
+    -->
+
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+        <!-- Gazebo → ros2_control bridge -->
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+
+        <joint name="rim_left_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        </joint>
+        <joint name="rim_right_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        </joint>
+        <joint name="rim_back_joint">
+        <command_interface name="velocity"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        </joint>
+
+    </ros2_control>
+
+    <gazebo>
+        <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="libgz_ros2_control-system.so">
+        <parameters>$(find hb_description)/config/controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+</robot>

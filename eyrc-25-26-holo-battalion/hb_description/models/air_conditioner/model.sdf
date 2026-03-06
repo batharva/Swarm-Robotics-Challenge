@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+<sdf version='1.8'>
+  <model name='air_conditioner'>
+    <static>1</static>
+    <link name="link">
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <mesh>
+            <uri>model://air_conditioner/meshes/air_conditioner.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
+
