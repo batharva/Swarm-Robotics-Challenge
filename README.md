@@ -120,7 +120,7 @@ ros2 launch hb_description task_2a.launch.py
 ros2 run hb_control holonomic_perception.py
 ```
 
-### Terminal 3 — Start Swarm Controller
+### Terminal 3 — Start 1 Bot Controller
 
 ```bash
 ros2 run hb_control task_2a_controller.py
